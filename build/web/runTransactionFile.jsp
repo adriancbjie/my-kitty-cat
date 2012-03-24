@@ -21,9 +21,9 @@
   <body bgcolor="pink">
     <%
 
-    File f = new File("c:\\temp\\aaproj\\trans.txt");
+    File f = new File("/Users/Adrian/workspace/trans.txt");
     if (!f.exists()) {
-    %><h1>File c:\temp\aaproj\trans.txt does not exist!</h1><%      } else {
+    %><h1>File does not exist!</h1><%      } else {
       try {
         long timeElapsed = transactBean.performTransactionsInFile();
     %><h1>Completed processing in <%=timeElapsed%> ms.</h1><%
