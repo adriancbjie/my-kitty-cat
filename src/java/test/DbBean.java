@@ -11,7 +11,7 @@ public class DbBean {
     double TOTAL_CASH_IN_WORLD = 50000; // reflects the total amount of cash in the bank and payment gateway
 
     // change the dbURL if necessary.
-    String dbURL = "jdbc:mysql://192.168.0.90:3306,192.168.0.70:3306/bank?autoReconnect=true&failOverReadOnly=false";
+    String dbURL = "jdbc:mysql:loadbalance://192.168.0.90:3306,192.168.0.70:3306/bank?loadBalanceBlacklistTimeout=5000";
     String dbDriver = "com.mysql.jdbc.Driver";
     private Connection dbCon;
 
