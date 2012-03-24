@@ -30,8 +30,8 @@ public class TransactionFileBean {
       dbBean = new DbBean();
       dbBean.connect();
 
-      // log file path and name is hardcoded here.
-      outFile = new PrintWriter(new FileWriter("c:\\temp\\aaproj\\trans.log"));
+      // log file path and name is hardcoded here.x
+      outFile = new PrintWriter(new FileWriter("/Users/Adrian/workspace/trans.log"));
     } catch (IOException e) {
       System.out.println("FATAL ERROR: Unable to write to transaction log file.");
       System.exit(1);
@@ -46,7 +46,7 @@ public class TransactionFileBean {
   public long performTransactionsInFile() throws Exception {
     try {
       // again... path of source file is hardcoded here (bad idea)
-      CSVReader reader = new CSVReader(new FileReader("c:\\temp\\aaproj\\trans.txt"));
+      CSVReader reader = new CSVReader(new FileReader("/Users/Adrian/workspace/trans.txt"));
 
       List entries = reader.readAll();
       Iterator i = entries.iterator();

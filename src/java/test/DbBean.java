@@ -11,11 +11,9 @@ public class DbBean {
     double TOTAL_CASH_IN_WORLD = 50000; // reflects the total amount of cash in the bank and payment gateway
 
     // change the dbURL if necessary.
-    String dbURL = "jdbc:mysql://localhost:3306/bank";
+    String dbURL = "jdbc:mysql://192.168.0.90:3306,192.168.0.70:3306/bank?autoReconnect=true&failOverReadOnly=false";
     String dbDriver = "com.mysql.jdbc.Driver";
     private Connection dbCon;
-    
-    private final ReentrantLock lock = new ReentrantLock();
 
     // constructor
     public DbBean() {
@@ -154,52 +152,65 @@ public class DbBean {
         double balance = 0;
         while (r.next()) {
             balance = r.getDouble(1);
+            System.out.println("add: " + balance);
         }
+        System.out.println("final: "+ balance);
         return balance;
     }
 
     // perform a funds transfer
     // returns true if the transfer is successful
     public boolean transferFunds(String idFrom, String idTo, double amt) throws SQLException {
-        if (amt <= 0) {
-            return false;
-        }
+//        lock.lock();
+        try{
+            if (amt <= 0) {
+                return false;
+            }
 
-        boolean valid = idExists(idFrom);
-        if (!valid) {
-            return false;
-        }
-        valid = idExists(idTo);
-        if (!valid) {
-            return false;
-        }
+            boolean valid = idExists(idFrom);
+            if (!valid) {
+                return false;
+            }
+            valid = idExists(idTo);
+            if (!valid) {
+                return false;
+            }
 
-        // read performed
-        double balanceFrom = getBalance(idFrom);
-        double newBalanceFrom = balanceFrom - amt;
-        if (newBalanceFrom < 0) {
-            return false;
-        }
 
-        //read performed
-        double balanceTo = getBalance(idTo);
-        double newBalanceTo = balanceTo + amt;
+            
+            Statement s = dbCon.createStatement();
+            try {
+                s.execute("set autocommit=0");
+                s.execute("START TRANSACTION");
+                // read performed
+                double balanceFrom = getBalance(idFrom);
+                double newBalanceFrom = balanceFrom - amt;
+                if (newBalanceFrom < 0) {
+                    return false;
+                }
 
-        // perform transfer
-        Statement s = dbCon.createStatement();
-        try {
-            s.execute("set autocommit=0");
-            s.execute("START TRANSACTION");
-            // debit
-            s.executeUpdate("UPDATE accounts SET balance=" + newBalanceFrom + " WHERE id='" + idFrom + "'");
-            // credit
-            s.executeUpdate("UPDATE accounts SET balance=" + newBalanceTo + " WHERE id='" + idTo + "'");
+                //read performed
+                double balanceTo = getBalance(idTo);
+                double newBalanceTo = balanceTo + amt;
+                // perform transfer
+                // debit
+                s.executeUpdate("UPDATE accounts SET balance=" + newBalanceFrom + " WHERE id='" + idFrom + "'");
+                // credit
+                s.executeUpdate("UPDATE accounts SET balance=" + newBalanceTo + " WHERE id='" + idTo + "'");
 
-            s.execute("commit");
-        } catch (SQLException e) {
-            s.execute("rollback");
+                s.execute("commit");
+            } catch (SQLException e) {
+                s.execute("rollback");
+            }
+            
+            
+        }catch(Exception e){
+            e.printStackTrace();
+        }finally{
+//            lock.unlock();
         }
         return true;
+
     }
 
     // performs a login

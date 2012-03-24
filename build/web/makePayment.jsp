@@ -28,11 +28,11 @@
                 <tbody>
                     <tr>
                         <td>Bank Id (please use the Bank Id provided to your team)</td>
-                        <td><INPUT TYPE=TEXT NAME=bankId value="" SIZE=10></td>
+                        <td><INPUT TYPE=TEXT NAME=bankId value="G2T1" SIZE=10></td>
                     </tr>
                     <tr>
                         <td>Bank Password</td>
-                        <td><INPUT TYPE=TEXT NAME=bankPwd value="" SIZE=10></td>
+                        <td><INPUT TYPE=TEXT NAME=bankPwd value="ladygaga" SIZE=10></td>
                     </tr>
                     <tr>
                         <td>Your User Id</td>
