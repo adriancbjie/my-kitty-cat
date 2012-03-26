@@ -31,7 +31,7 @@ public class TransactionFileBean {
       dbBean.connect();
 
       // log file path and name is hardcoded here.x
-      outFile = new PrintWriter(new FileWriter("/Users/Adrian/workspace/trans.log"));
+      outFile = new PrintWriter(new FileWriter("c:/aa/trans.log"));
     } catch (IOException e) {
       System.out.println("FATAL ERROR: Unable to write to transaction log file.");
       System.exit(1);
