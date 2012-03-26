@@ -3,3 +3,5 @@
 *.war
 *.properties
 *.xml
+build/*
+dist/*

@@ -25,7 +25,6 @@
     java.net.URL url = test.TransactionFileBean.class.getResource("../all.properties");
     props.load(new FileInputStream(url.getPath()));
     String transUrl = props.getProperty("trans_url");
-
     File f = new File(transUrl);
     if (!f.exists()) {
     %><h1>File does not exist!</h1><%      } else {
