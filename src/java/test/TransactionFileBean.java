@@ -37,8 +37,6 @@ public class TransactionFileBean {
       props.load(new FileInputStream(url.getPath()));
       String transLogUrl = props.getProperty("trans_log_output_url");
 
-//      System.out.println(transLogUrl);
-//      outFile = new PrintWriter(new FileWriter(transLogUrl));
     } catch (IOException e) {
       System.out.println("FATAL ERROR: Unable to write to transaction log file.");
       System.exit(1);
