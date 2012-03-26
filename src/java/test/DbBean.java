@@ -1,15 +1,15 @@
 package test;
+
 import java.sql.*;
-import java.util.concurrent.locks.*;
+import java.util.*;
+import java.io.*;
 
 // DbBean is the Data Access Object bean which connects to the MySQL database & 
 // executes SQL statements. Methods here are used by the Servlets and JSP pages
 // in the whole project.
-
 public class DbBean {
 
     double TOTAL_CASH_IN_WORLD = 50000; // reflects the total amount of cash in the bank and payment gateway
-
     // change the dbURL if necessary.
     String dbURL = "jdbc:mysql:loadbalance://192.168.0.90:3306,192.168.0.70:3306/bank?loadBalanceBlacklistTimeout=5000";
     String dbDriver = "com.mysql.jdbc.Driver";
@@ -17,7 +17,7 @@ public class DbBean {
 
     // constructor
     public DbBean() {
-      // do nothing
+        // do nothing
     }
 
     // connects to the database using root. change your database id/password here if necessary
@@ -25,7 +25,7 @@ public class DbBean {
         Class.forName(dbDriver);
 
         // login credentials to your MySQL server
-        dbCon = DriverManager.getConnection(dbURL, "root", ""); 
+        dbCon = DriverManager.getConnection(dbURL, "root", "");
         return true;
     }
 
@@ -34,18 +34,17 @@ public class DbBean {
         dbCon.close();
     }
 
-
     // insert a row into the Payment table
     // (to be called when a successful payment is made to the payment gateway
-    public void recordPayment (String userId, double amt, String refId) throws SQLException{
+    public void recordPayment(String userId, double amt, String refId) throws SQLException {
         // perform insert
         Statement s = dbCon.createStatement();
-        s.executeUpdate("INSERT INTO payments (payeeId, payment, refid) VALUES ('" + userId + "','" + amt + "','"+ refId + "')");
+        s.executeUpdate("INSERT INTO payments (payeeId, payment, refid) VALUES ('" + userId + "','" + amt + "','" + refId + "')");
         return;
     }
 
     // get total payment made so far recorded in table payments
-    public double getTotalPaymentMade () throws SQLException{
+    public double getTotalPaymentMade() throws SQLException {
         Statement s = dbCon.createStatement();
         ResultSet r = s.executeQuery("SELECT SUM(payment) FROM payments");
 
@@ -61,7 +60,7 @@ public class DbBean {
     }
 
     // get the sum of the balance of all user accounts recorded in table accounts
-    public double getTotalBalance () throws SQLException{
+    public double getTotalBalance() throws SQLException {
         Statement s = dbCon.createStatement();
         ResultSet r = s.executeQuery("SELECT SUM(balance) FROM accounts");
 
@@ -90,19 +89,19 @@ public class DbBean {
     }
 
     // debit an account
-    public boolean debit(String userId, double amt) throws SQLException{
+    public boolean debit(String userId, double amt) throws SQLException {
 
         // check if user ID is valie
-        if (!idExists(userId)){
+        if (!idExists(userId)) {
             return false;
         }
 
         // check if there is enough balance
         double balance = getBalance(userId);
-        if (balance<amt){
+        if (balance < amt) {
             return false;
         }
-        double newBalance = balance-amt;
+        double newBalance = balance - amt;
 
         // perform debit
         Statement s = dbCon.createStatement();
@@ -111,10 +110,10 @@ public class DbBean {
     }
 
     // credit an account
-    public boolean credit(String userId, double amt) throws SQLException{
+    public boolean credit(String userId, double amt) throws SQLException {
 
         // check if user ID is valie
-        if (!idExists(userId)){
+        if (!idExists(userId)) {
             return false;
         }
 
@@ -136,7 +135,7 @@ public class DbBean {
         while (r.next()) {
             count = r.getInt(1);
         }
-        return (count>0);
+        return (count > 0);
     }
 
     // returns the balance of a particular user ID in the accounts table
@@ -154,7 +153,7 @@ public class DbBean {
             balance = r.getDouble(1);
             System.out.println("add: " + balance);
         }
-        System.out.println("final: "+ balance);
+        System.out.println("final: " + balance);
         return balance;
     }
 
@@ -162,7 +161,7 @@ public class DbBean {
     // returns true if the transfer is successful
     public boolean transferFunds(String idFrom, String idTo, double amt) throws SQLException {
 //        lock.lock();
-        try{
+        try {
             if (amt <= 0) {
                 return false;
             }
@@ -177,10 +176,13 @@ public class DbBean {
             }
 
 
-            
+
             Statement s = dbCon.createStatement();
+            boolean autoCommitDefault = dbCon.getAutoCommit();
+            System.out.println("DB STATE: "+autoCommitDefault);
             try {
-                s.execute("set autocommit=0");
+                dbCon.setAutoCommit(false);
+//                s.execute("set autocommit=0");
                 s.execute("START TRANSACTION");
                 // read performed
                 double balanceFrom = getBalance(idFrom);
@@ -198,15 +200,18 @@ public class DbBean {
                 // credit
                 s.executeUpdate("UPDATE accounts SET balance=" + newBalanceTo + " WHERE id='" + idTo + "'");
 
-                s.execute("commit");
+                dbCon.commit();
+                dbCon.setAutoCommit(true);
             } catch (SQLException e) {
-                s.execute("rollback");
+                dbCon.rollback();
+            } finally {
+                try { dbCon.setAutoCommit(autoCommitDefault); } catch (Throwable ignore) {}
             }
-            
-            
-        }catch(Exception e){
+
+
+        } catch (Exception e) {
             e.printStackTrace();
-        }finally{
+        } finally {
 //            lock.unlock();
         }
         return true;
@@ -222,15 +227,15 @@ public class DbBean {
         ResultSet r = s.executeQuery("select count(*) from accounts where type='admin' and id='" + id + "' and password='" + password + "'");
 
         while (r.next()) {
-            if(r.getInt(1)==0){
-              // is this a user?
-              r = s.executeQuery("select count(*) from accounts where type='user' and id='" + id + "' and password='" + password + "'");
-              while (r.next()){
-                  if (r.getInt(1)==0){
-                      return -1; // no such ID
-                  }
-              }
-              return 1; // this is a user
+            if (r.getInt(1) == 0) {
+                // is this a user?
+                r = s.executeQuery("select count(*) from accounts where type='user' and id='" + id + "' and password='" + password + "'");
+                while (r.next()) {
+                    if (r.getInt(1) == 0) {
+                        return -1; // no such ID
+                    }
+                }
+                return 1; // this is a user
             }
         }
         return 0; // this is an administrator

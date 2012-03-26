@@ -30,8 +30,15 @@ public class TransactionFileBean {
       dbBean = new DbBean();
       dbBean.connect();
 
-      // log file path and name is hardcoded here.x
-      outFile = new PrintWriter(new FileWriter("/Users/Adrian/workspace/trans.log"));
+      // log file path and name is hardcoded here.x : hard code fixed!
+      //properties file to read url
+      Properties props = new Properties();
+      java.net.URL url = test.TransactionFileBean.class.getResource("../all.properties");
+      props.load(new FileInputStream(url.getPath()));
+      String transLogUrl = props.getProperty("trans_log_output_url");
+
+//      System.out.println(transLogUrl);
+//      outFile = new PrintWriter(new FileWriter(transLogUrl));
     } catch (IOException e) {
       System.out.println("FATAL ERROR: Unable to write to transaction log file.");
       System.exit(1);
@@ -45,8 +52,14 @@ public class TransactionFileBean {
   // returns the time taken for this process in msec.
   public long performTransactionsInFile() throws Exception {
     try {
-      // again... path of source file is hardcoded here (bad idea)
-      CSVReader reader = new CSVReader(new FileReader("/Users/Adrian/workspace/trans.txt"));
+      // again... path of source file is hardcoded here (bad idea) <-- Adrian: no worries, bad habits can be fixed ;)
+      //properties file to read url
+      Properties props = new Properties();
+      java.net.URL url = TransactionFileBean.class.getResource("../all.properties");
+      props.load(new FileInputStream(url.getPath()));
+      String transUrl = props.getProperty("trans_url");
+
+      CSVReader reader = new CSVReader(new FileReader(transUrl));
 
       List entries = reader.readAll();
       Iterator i = entries.iterator();
