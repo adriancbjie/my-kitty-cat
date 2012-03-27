@@ -6,7 +6,6 @@
         <%
         // only users can see this page
         if (session.getAttribute("authenticatedUser")==null){
-            System.out.println("fuck you chee by");
              %> <jsp:forward page = "login.html" /> <%
         }
         String userId = (String) session.getAttribute("userId");
