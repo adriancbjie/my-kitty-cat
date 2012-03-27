@@ -9,7 +9,7 @@ import java.io.*;
 // in the whole project.
 public class DbBean {
 
-    double TOTAL_CASH_IN_WORLD = 50000; // reflects the total amount of cash in the bank and payment gateway
+    double TOTAL_CASH_IN_WORLD = 5000; // reflects the total amount of cash in the bank and payment gateway
     // change the dbURL if necessary.
     String dbURL = "jdbc:mysql:loadbalance://192.168.0.90:3306,192.168.0.70:3306/bank?loadBalanceBlacklistTimeout=5000";
 //    String dbURL="jdbc:mysql:loadbalance://localhost:3306/bank";

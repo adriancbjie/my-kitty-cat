@@ -35,8 +35,9 @@ public class TransactionFileBean {
             Properties props = new Properties();
             java.net.URL url = test.TransactionFileBean.class.getResource("../all.properties");
             props.load(new FileInputStream(url.getPath()));
+            //please specify absolute path in all.properties
             String transLogUrl = props.getProperty("trans_log_output_url");
-
+            
             outFile = new PrintWriter(new FileWriter(transLogUrl));
 
         } catch (IOException e) {
@@ -53,13 +54,12 @@ public class TransactionFileBean {
     public long performTransactionsInFile() throws Exception {
         try {
             // again... path of source file is hardcoded here (bad idea) <-- Adrian: no worries, bad habits can be fixed ;)
-            //properties file to read url
+            //properties file to read url, if you prefer.
             Properties props = new Properties();
             java.net.URL url = TransactionFileBean.class.getResource("../all.properties");
             props.load(new FileInputStream(url.getPath()));
             String transUrl = props.getProperty("trans_url");
-
-
+         
             CSVReader reader = new CSVReader(new FileReader(transUrl));
             List<String> data = reader.readAll();
             // ---------------- you may wish to optimise this part - adrian says: ok prof :D
@@ -82,7 +82,28 @@ public class TransactionFileBean {
             }
 
             // ---------------- end optimise
-            return stopTimer();
+            long stoppedTime = stopTimer();
+            
+            String transactionHealth = "";
+            //check for validations errors in transactions
+            if (dbBean.TOTAL_CASH_IN_WORLD == dbBean.getTotalBalance())
+            {
+                if(dbBean.getNoOfAccountsWithNegativeBalance() <= 0)
+                {
+                    transactionHealth += "HEALTHY: the balance matches and there are no accounts with negative balance";
+                }else{
+                    transactionHealth += " | there are accounts with negative balance |";
+                }
+            }else{
+                transactionHealth += " | balance does not tally with total money in bank | ";
+            }
+            
+            //tommi add the log for me thanks :D
+            //replace this
+            System.out.println(transactionHealth);
+            
+            return stoppedTime;
+            
         } catch (IOException e) {
             log("ERROR: " + e.getMessage());
             log("Likely cause: unable to read from trans.txt ");
@@ -99,11 +120,7 @@ public class TransactionFileBean {
             log("ERROR: " + e.getMessage());
             log("Likely cause: incorrect format of transaction file");
             throw e;
-        } //        catch (SQLException e) {
-        //            log("ERROR: " + e.getMessage());
-        //            log("Likely cause: database error");
-        //            throw e;
-        //        } 
+        }
         finally {
             // clean up
             outFile.close();
