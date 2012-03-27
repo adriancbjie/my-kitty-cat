@@ -1,3 +1,4 @@
+<%@page import="java.util.Random"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
    "http://www.w3.org/TR/html4/loose.dtd">
@@ -41,7 +42,15 @@
                     </tr>
                     <tr>
                         <td>Reference Id</td>
-                        <td><INPUT TYPE=TEXT NAME=referenceId value="0000-0000" SIZE=10></td>
+                        <%  
+                            //generate reference id
+                            String refId;
+                            Random r = new Random();
+                            Random r2 = new Random();
+                            refId = String.valueOf(1000 + r.nextInt(8999));
+                            refId = refId + "-" + String.valueOf(1000 + r.nextInt(8999));
+                        %>
+                        <td><INPUT TYPE=TEXT NAME=referenceId value="<%= refId %>" SIZE=10></td>
                     </tr>
                     <tr>
                         <td>Amount to pay</td>
