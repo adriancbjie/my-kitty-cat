@@ -5,9 +5,22 @@
         <servlet-name>processMakePayment</servlet-name>
         <servlet-class>ProcessMakePaymentServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Log4JInitServlet</servlet-name>
+        <servlet-class>Log4JInitServlet</servlet-class>
+        <init-param>
+            <param-name>log4j-properties-location</param-name>
+            <param-value>WEB-INF/log4j.properties</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
     <servlet-mapping>
         <servlet-name>processMakePayment</servlet-name>
         <url-pattern>/processMakePayment</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Log4JInitServlet</servlet-name>
+        <url-pattern>/Log4JInitServlet</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
