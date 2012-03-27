@@ -143,6 +143,8 @@ public class DbBean {
     // returns -1 if the user ID does not exist.
     public double getBalance(String id) throws SQLException {
         Statement s = dbCon.createStatement();
+        s.execute("set autocommit=0");
+        s.execute("START TRANSACTION");
         ResultSet r = s.executeQuery("select balance from accounts where id='" + id + "' FOR UPDATE");
 
         if (r == null) {
@@ -176,8 +178,6 @@ public class DbBean {
         Statement s = dbCon.createStatement();
         try {
 
-            s.execute("set autocommit=0");
-            s.execute("START TRANSACTION");
             //get balance of idFrom and then check for condition where he has not enough money to transfer
             double balanceFrom = getBalance(idFrom);
             double newBalanceFrom = balanceFrom - amt;
