@@ -1,6 +1,9 @@
+<%@page import="org.apache.log4j.Logger"%>
 <%@page contentType="text/html" pageEncoding="UTF-8" import="java.sql.*" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
     "http://www.w3.org/TR/html4/loose.dtd">
+
+<% Logger logger = Logger.getLogger( "processLogin.jsp" ); %>
 
 <jsp:useBean id="db" scope="request" class="test.DbBean" />
 <jsp:setProperty name="db" property="*" />
@@ -33,10 +36,12 @@
                     } else if (status==0){
                         session.setAttribute("userId",id);
                         session.setAttribute("authenticatedAdmin",true);
+                        logger.info("Admin has logon");
         %> <jsp:forward page = "loginSuccessAdmin.jsp" /> <%
                     } else if (status==1){
                         session.setAttribute("userId",id);
                         session.setAttribute("authenticatedUser",true);
+                        logger.info(id + " has logon");
         %> <jsp:forward page = "loginSuccessUser.jsp" /> <%
                     }
                  } catch (SQLException e) {
