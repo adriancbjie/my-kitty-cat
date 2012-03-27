@@ -30,11 +30,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link CheckTotalPaidResponse }
+     * Create an instance of {@link PayResponse }
      * 
      */
-    public CheckTotalPaidResponse createCheckTotalPaidResponse() {
-        return new CheckTotalPaidResponse();
+    public PayResponse createPayResponse() {
+        return new PayResponse();
     }
 
     /**
@@ -46,22 +46,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link CheckTotalPaid }
-     * 
-     */
-    public CheckTotalPaid createCheckTotalPaid() {
-        return new CheckTotalPaid();
-    }
-
-    /**
-     * Create an instance of {@link PayResponse }
-     * 
-     */
-    public PayResponse createPayResponse() {
-        return new PayResponse();
-    }
-
-    /**
      * Create an instance of {@link ResetBalancesResponse }
      * 
      */
@@ -70,11 +54,27 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link CheckTotalPaidResponse }
+     * 
+     */
+    public CheckTotalPaidResponse createCheckTotalPaidResponse() {
+        return new CheckTotalPaidResponse();
+    }
+
+    /**
      * Create an instance of {@link Pay }
      * 
      */
     public Pay createPay() {
         return new Pay();
+    }
+
+    /**
+     * Create an instance of {@link CheckTotalPaid }
+     * 
+     */
+    public CheckTotalPaid createCheckTotalPaid() {
+        return new CheckTotalPaid();
     }
 
 }

@@ -12,7 +12,7 @@ public class DbBean {
     double TOTAL_CASH_IN_WORLD = 50000; // reflects the total amount of cash in the bank and payment gateway
     // change the dbURL if necessary.
     String dbURL = "jdbc:mysql:loadbalance://192.168.0.90:3306,192.168.0.70:3306/bank?loadBalanceBlacklistTimeout=5000";
-    //String dbURL="jdbc:mysql:loadbalance://192.168.0.70:3306/bank";
+//    String dbURL="jdbc:mysql:loadbalance://localhost:3306/bank";
     String dbDriver = "com.mysql.jdbc.Driver";
     private Connection dbCon;
 
@@ -155,6 +155,24 @@ public class DbBean {
         }
         return balance;
     }
+    
+    //same as above but this time it holds a write lock on the row until a commit is done
+    public double getWriteLockedBalance(String id) throws SQLException {
+        Statement s = dbCon.createStatement();
+        s.execute("set autocommit=0");
+        s.execute("START TRANSACTION");
+        ResultSet r = s.executeQuery("select balance from accounts where id='" + id + "' FOR UPDATE");
+
+        if (r == null) {
+            return -1;
+        }
+
+        double balance = 0;
+        while (r.next()) {
+            balance = r.getDouble(1);
+        }
+        return balance;
+    }
 
     // perform a funds transfer
     // returns true if the transfer is successful
@@ -172,31 +190,27 @@ public class DbBean {
             return false;
         }
 
-       
         // perform transfer
         Statement s = dbCon.createStatement();
         try {
-            s.execute("set autocommit=0");
-            s.execute("START TRANSACTION");
-            s.execute("SELECT balance FROM accounts FOR UPDATE");
-           // s.execute("SELECT balance FROM accounts where id='" + idTo + "' FOR UPDATE");
-            double balanceFrom = getBalance(idFrom);
+
+            //get balance of idFrom and then check for condition where he has not enough money to transfer
+            double balanceFrom = getWriteLockedBalance(idFrom);
             double newBalanceFrom = balanceFrom - amt;
+            
             if (newBalanceFrom < 0) {
+                s.execute("commit");
                 return false;
             }
-
-            double balanceTo = getBalance(idTo);
-            double newBalanceTo = balanceTo + amt;
-
-           
+            
             // debit
-            s.executeUpdate("UPDATE accounts SET balance=" + newBalanceFrom + " WHERE id='" + idFrom + "'");
+            s.executeUpdate("UPDATE accounts SET balance = balance - " + amt + " WHERE id='" + idFrom + "'");
             // credit
-            s.executeUpdate("UPDATE accounts SET balance=" + newBalanceTo + " WHERE id='" + idTo + "'");
+            s.executeUpdate("UPDATE accounts SET balance = balance + " + amt + " WHERE id='" + idTo + "'");
 
             s.execute("commit");
         } catch (SQLException e) {
+            e.printStackTrace();
             s.execute("rollback");
         }
         return true;
