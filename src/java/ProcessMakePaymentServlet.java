@@ -16,13 +16,13 @@ import test.DbBean;
 public class ProcessMakePaymentServlet extends HttpServlet {
 
     static Logger log = Logger.getLogger(ProcessMakePaymentServlet.class);
-
     private long startTime;
-    private final ExecutorService executor = Executors.newFixedThreadPool(1);
+    private final ExecutorService paymentExecutor = Executors.newFixedThreadPool(1);
+    private final ExecutorService dbExecutor = Executors.newFixedThreadPool(1);
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         startTimer();
 
         // initialize parameters for invoking remote method
@@ -33,12 +33,14 @@ public class ProcessMakePaymentServlet extends HttpServlet {
         final String referenceId = request.getParameter("referenceId");
         final double amt = Double.parseDouble(request.getParameter("amt"));
 
+        log.info("Processing paymengt for " + userId);
+        
         // these 2 things need to be done.
         boolean successfulDebit = false;
         boolean successfullyInformedPaymentGateway = false;
 
         //submit a new executor to inform payment gateway
-        Future<Boolean> future = executor.submit(new Callable() {
+        Future<Boolean> paymentFuture = paymentExecutor.submit(new Callable() {
 
             public Boolean call() {
                 boolean result = false;
@@ -50,9 +52,23 @@ public class ProcessMakePaymentServlet extends HttpServlet {
 
                     // contact payment gateway by invoking remote pay web service method here.
                     result = port.pay(bankId, bankPwd, payeeId, referenceId, amt);
-
                 } catch (Exception e) {
                     log.error("Exception caught when using payment gateway, printing stacktrace...");
+                    log.error(e);
+                }
+                return result;
+            }
+        });
+
+        //submit a new executor for db 
+        Future<Boolean> dbFuture = dbExecutor.submit(new Callable() {
+            public Boolean call() {
+                boolean result = false;
+
+                try {
+                    result = debitAccount(userId, amt);
+                } catch (Exception e) {
+                    log.error("Exception caught when talking to DB");
                     log.error(e);
                 }
                 return result;
@@ -64,17 +80,19 @@ public class ProcessMakePaymentServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         try {
-            // process debit
-            successfulDebit = debitAccount(userId, amt);
+            
+            while (!paymentFuture.isDone() && !dbFuture.isDone()) {
+                log.error("Waiting for both payment & db executors to be done.");
+            }
+                
+            successfulDebit = dbFuture.get();
+            successfullyInformedPaymentGateway = paymentFuture.get();
 
             out.println("<html>");
             out.println("<head>");
             out.println("<title>Servlet processMakePayment</title>");
             out.println("</head>");
             out.println("<body>");
-
-            //wait for result from the executor
-            successfullyInformedPaymentGateway = future.get();
             
             startTime = stopTimer();
 
@@ -87,8 +105,8 @@ public class ProcessMakePaymentServlet extends HttpServlet {
                 log.info("Payment to gateway failed, crediting amount back to account.");
                 creditAccount(userId, amt);
             } else if (!successfulDebit) {
-                out.println("Unable to debit from your account.");
-                log.info("Unable to debit from your account.");
+                out.println("Unable to debit from user account.");
+                log.info("Unable to debit from user account.");
             }
 
             if (successfulDebit) {
